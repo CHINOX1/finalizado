@@ -1,0 +1,1 @@
+pip install sys datetime PySide6 matplotlib pandas firebase_admin openpyxl python-docx
