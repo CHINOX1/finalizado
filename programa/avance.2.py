@@ -1,7 +1,7 @@
 import sys
 from datetime import datetime
 from PySide6.QtCore import QDate
-from PySide6.QtWidgets import QApplication, QMainWindow, QHeaderView,QPushButton, QVBoxLayout, QWidget, QDialog, QLineEdit, QFormLayout, QDateEdit, QTextEdit, QTableWidget, QTableWidgetItem, QLabel, QDialogButtonBox, QComboBox, QMessageBox, QFileDialog
+from PySide6.QtWidgets import QApplication, QMainWindow, QHeaderView,QPushButton, QVBoxLayout, QWidget, QDialog, QLineEdit, QFormLayout, QDateEdit, QTextEdit, QTableWidget, QTableWidgetItem, QLabel, QDialogButtonBox, QComboBox, QMessageBox, QFileDialog,QMessageBox
 from PySide6.QtCore import Qt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
@@ -314,8 +314,17 @@ class VentanaPacientes(QMainWindow):
         # Esta función maneja lo que sucede cuando se hace clic en el botón "Nueva Sesión"
         self.formulario_sesion = FormularioSesion()
         self.formulario_sesion.rut.setText(rut)  # Establecer el rut del paciente en el formulario de sesión
-        self.formulario_sesion.show()
+        paciente = self.recuperar_datos_paciente(rut)
+        if paciente:
+            # obtener datos del paciente ( sesiones )
+            Ncesion = paciente.get("sesion",0) 
+            Ncesion += 1
+            print (f"nueva sesion.{Ncesion}")
 
+            # Convertimos el valor de la sesión de nuevo a cadena para mostrarlo en el formulario
+            self.formulario_sesion.Ncesion.setText(str(Ncesion))
+        self.formulario_sesion.show()
+        
     def generar_informe(self, rut):
         docs = db.collection('sesiones').stream()
         datos = [doc.to_dict() for doc in docs if doc.to_dict().get('rut') == rut]
@@ -403,14 +412,23 @@ class VentanaPacientes(QMainWindow):
 
         # Consultamos la colección de sesiones para obtener el examen físico más reciente del paciente
         examen_fisico = ""
+        sesion= 0
         sesiones_ref = db.collection("sesiones").where("rut", "==", rut).order_by("fecha", direction=firestore.Query.DESCENDING).limit(1).stream()
         for doc in sesiones_ref:
             datos_sesion = doc.to_dict()
             examen_fisico = datos_sesion.get("examen_fisico", "")
+            # Convertimos el valor de la sesión a entero, si está presente
+            sesion_str = datos_sesion.get("sesion", "0")
+            try:
+                sesion = int(sesion_str)
+            except ValueError:
+                sesion = 0  # Si no se puede convertir, se inicializa en 0
 
         # Retornamos los datos del paciente junto con el examen físico de la última sesión
         datos_paciente["examen_fisico"] = examen_fisico
+        datos_paciente["sesion"] = sesion
         return datos_paciente
+    
 
 
 
@@ -717,7 +735,27 @@ class GenerarInformeFormulario(QWidget):
         file_name, _ = QFileDialog.getSaveFileName(self, "Guardar Informe como", "", "Word Files (*.docx)", options=options)
         if file_name:
             doc.save(file_name)
-            QMessageBox.information(self, "Generar Informe", f"El informe se ha generado y guardado en '{file_name}' correctamente.")
+    # Guardar el informe en Firestore
+            informe_data = {
+                "nombre": nombre,
+                "rut": rut,
+                "edad": edad,
+                "motivo_consulta": motivo_consulta,
+                "enfermedad_actual": enfermedad_actual,
+                "examen_fisico": examen_fisico,
+                "diagnostico": diagnostico,
+                "indicaciones": indicaciones,
+                "fecha": fecha_actual,
+                "ruta_documento": file_name  # Guardamos la ruta del documento generado
+            }
+
+            # Agregar el documento a Firestore
+            try:
+                db.collection('informes_medicos').add(informe_data)
+                QMessageBox.information(self, "Enviar a Firestore", "El informe se ha guardado en Firestore correctamente.")
+            except Exception as e:
+                QMessageBox.warning(self, "Error al enviar a Firestore", f"No se pudo guardar el informe en Firestore: {str(e)}")
+                QMessageBox.information(self, "Generar Informe", f"El informe se ha generado y guardado en '{file_name}' correctamente.")
 
 if __name__ == "__main__":
     app = QApplication([])
