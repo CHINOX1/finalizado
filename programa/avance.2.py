@@ -6,6 +6,7 @@ from PySide6.QtCore import Qt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 import pandas as pd
+from PySide6.QtCore import QSize
 import firebase_admin
 from firebase_admin import credentials, firestore
 from openpyxl import Workbook
@@ -227,8 +228,8 @@ class VentanaPacientes(QMainWindow):
         self.button_nuevo_paciente.clicked.connect(self.abrir_formulario_paciente)
 
         self.table_pacientes = QTableWidget()
-        self.table_pacientes.setColumnCount(14)
-        self.table_pacientes.setHorizontalHeaderLabels(["Nombre", "Edad", "Teléfono", "RUT", "Fecha", "Médico Tratante", "Cirugía", "Previsión", "Dirección", "Correo ", "MT Consulta" , "Sesiones","IFM Sesiones","IFM General"])
+        self.table_pacientes.setColumnCount(17)
+        self.table_pacientes.setHorizontalHeaderLabels(["Nombre", "Apellidos", "RUT", "EDAD", "Fecha de ingreso", "Médico Tratante", "Diagnostico Medico", "Cirugia", "Prevision", "ANT Morbidos", "MT Consulta" ,"ANA Actual","Examen Fisico","IDC Medicas", "Sesiones","IFM Sesiones","IFM General"])
         self.actualizar_tabla_pacientes()
 
         self.button_abrir_sesiones = QPushButton("Abrir Sesiones")
@@ -281,16 +282,19 @@ class VentanaPacientes(QMainWindow):
         self.table_pacientes.setRowCount(len(pacientes))
         for i, paciente in enumerate(pacientes):
             self.table_pacientes.setItem(i, 0, QTableWidgetItem(paciente.get("nombre", "")))
-            self.table_pacientes.setItem(i, 1, QTableWidgetItem(paciente.get("edad", "")))
-            self.table_pacientes.setItem(i, 2, QTableWidgetItem(paciente.get("telefono", "")))
-            self.table_pacientes.setItem(i, 3, QTableWidgetItem(paciente.get("rut", "")))
+            self.table_pacientes.setItem(i, 1, QTableWidgetItem(paciente.get("apellido", "")))
+            self.table_pacientes.setItem(i, 2, QTableWidgetItem(paciente.get("rut", "")))
+            self.table_pacientes.setItem(i, 3, QTableWidgetItem(paciente.get("edad", "")))
             self.table_pacientes.setItem(i, 4, QTableWidgetItem(paciente.get("fecha", "")))
             self.table_pacientes.setItem(i, 5, QTableWidgetItem(paciente.get("medicoTratante", "")))
-            self.table_pacientes.setItem(i, 6, QTableWidgetItem(paciente.get("cirugia", "")))
-            self.table_pacientes.setItem(i, 7, QTableWidgetItem(paciente.get("prevision", "")))
-            self.table_pacientes.setItem(i, 8, QTableWidgetItem(paciente.get("direccion", "")))
-            self.table_pacientes.setItem(i, 9, QTableWidgetItem(paciente.get("correo", "")))
+            self.table_pacientes.setItem(i, 6, QTableWidgetItem(paciente.get("diagnostico_medico", "")))
+            self.table_pacientes.setItem(i, 7, QTableWidgetItem(paciente.get("cirugia", "")))
+            self.table_pacientes.setItem(i, 8, QTableWidgetItem(paciente.get("prevision", "")))
+            self.table_pacientes.setItem(i, 9, QTableWidgetItem(paciente.get("antecedentes_morbidos", "")))
             self.table_pacientes.setItem(i, 10, QTableWidgetItem(paciente.get("motivo_consulta", "")))
+            self.table_pacientes.setItem(i, 11, QTableWidgetItem(paciente.get("anamnesis_actual", "")))
+            self.table_pacientes.setItem(i, 12, QTableWidgetItem(paciente.get("examen_fisico", "")))
+            self.table_pacientes.setItem(i, 13, QTableWidgetItem(paciente.get("indicaciones_medicas", "")))
             # Ajustar el ancho de las columnas para que el contenido se muestre completamente
             self.table_pacientes.resizeColumnsToContents()
             # Permitir que el contenido de las celdas se expanda y ajuste automáticamente
@@ -298,16 +302,16 @@ class VentanaPacientes(QMainWindow):
 
             button_nueva_sesion = QPushButton("Nueva Sesión")
             button_nueva_sesion.clicked.connect(lambda _, rut=paciente.get("rut", ""): self.nueva_sesion(rut))  # Conectar el clic del botón a una función
-            self.table_pacientes.setCellWidget(i, 11, button_nueva_sesion)  # Establecer el botón en la celda correspondiente
+            self.table_pacientes.setCellWidget(i, 14, button_nueva_sesion)  # Establecer el botón en la celda correspondiente
             # Agregar botón "Informe"
-            if self.table_pacientes.cellWidget(i, 13) is None:
+            if self.table_pacientes.cellWidget(i, 16) is None:
                 button_informe = QPushButton("IFM general")
                 button_informe.clicked.connect(lambda _, rut=paciente.get("rut", ""): self.abrir_formulario_informe(rut))
-                self.table_pacientes.setCellWidget(i, 13, button_informe)
+                self.table_pacientes.setCellWidget(i, 16, button_informe)
 
             button_generar_informe = QPushButton("IFM sesiones")
             button_generar_informe.clicked.connect(lambda _, rut=paciente.get("rut", ""): self.generar_informe(rut))  # Conectar el clic del botón a una función
-            self.table_pacientes.setCellWidget(i, 12, button_generar_informe)  # Establecer el botón en la celda correspondiente
+            self.table_pacientes.setCellWidget(i, 15, button_generar_informe)  # Establecer el botón en la celda correspondiente
     
 
     def nueva_sesion(self, rut):
@@ -413,7 +417,7 @@ class VentanaPacientes(QMainWindow):
         # Consultamos la colección de sesiones para obtener el examen físico más reciente del paciente
         examen_fisico = ""
         sesion= 0
-        sesiones_ref = db.collection("sesiones").where("rut", "==", rut).order_by("fecha", direction=firestore.Query.DESCENDING).limit(1).stream()
+        sesiones_ref = db.collection("pacientes").where("rut", "==", rut).order_by("fecha", direction=firestore.Query.DESCENDING).limit(1).stream()
         for doc in sesiones_ref:
             datos_sesion = doc.to_dict()
             examen_fisico = datos_sesion.get("examen_fisico", "")
@@ -490,54 +494,94 @@ class FormularioPaciente(QDialog):
     def __init__(self):
         super(FormularioPaciente, self).__init__()
         self.setWindowTitle("Nuevo Paciente")
-
         self.nombre = QLineEdit()
-        self.edad = QLineEdit()
-        self.telefono = QLineEdit()
+        self.nombre.setFixedSize(QSize(200,20))
+
+        self.apellido = QLineEdit()
+        self.apellido.setFixedSize(QSize(200,20))
+
         self.rut = QLineEdit()
-        self.fechaNacimiento = QDateEdit()
+        self.rut.setFixedSize(QSize(200,20))
+
+        self.edad = QLineEdit()
+        self.edad.setFixedSize(QSize(200,20))
+
+        self.fechaingreso = QDateEdit()
+        self.fechaingreso.setDate(QDate.currentDate()) 
+        self.fechaingreso.setFixedSize(QSize(200,20))
+
         self.medicoTratante = QLineEdit()
+        self.medicoTratante.setFixedSize(QSize(200,20))
+
+        self.DiagnosticoMedico = QTextEdit()
+        self.DiagnosticoMedico.setFixedSize(QSize(200,60))
+
         self.cirugia = QLineEdit()
+        self.cirugia.setFixedSize(QSize(200,20))
+
         self.prevision = QLineEdit()
-        self.direccion = QLineEdit()
-        self.correo = QLineEdit()
-        self.enfermedad_actual  = QTextEdit()
+        self.prevision.setFixedSize(QSize(200,20))
+
+        self.antecedentesMorbidos = QTextEdit()
+        self.antecedentesMorbidos.setFixedSize(QSize(200, 100))
+
         self.motivo_consulta = QTextEdit()
+        self.motivo_consulta.setFixedSize(QSize(200, 100))
+
+        self.AnamnesisActual = QTextEdit()
+        self.AnamnesisActual.setFixedSize(QSize(200, 100))
+
+        self.examen_fisico = QTextEdit()
+        self.examen_fisico.setFixedSize(QSize(200, 100))
+
+        self.indicacionesMedicas = QTextEdit()
+        self.indicacionesMedicas.setFixedSize(QSize(200, 100))
+
+
+      
+        
 
         layout = QFormLayout(self)
-        layout.addRow(QLabel("Formulario de Paciente"))
-        layout.addRow("Nombre", self.nombre)
-        layout.addRow("Edad", self.edad)
-        layout.addRow("Teléfono", self.telefono)
-        layout.addRow("RUT", self.rut)
-        layout.addRow("Fecha de Nacimiento", self.fechaNacimiento)
-        layout.addRow("Médico Tratante", self.medicoTratante)
-        layout.addRow("Cirugía", self.cirugia)
-        layout.addRow("Previsión", self.prevision)
-        layout.addRow("Dirección", self.direccion)
-        layout.addRow("Correo Electrónico", self.correo)
-        layout.addRow("enferdad actual", self.enfermedad_actual)
-        layout.addRow("motivo de consulta", self.motivo_consulta)
+        layout.addRow(QLabel("Ficha Kinesica"))
+        layout.addRow("Nombre:", self.nombre)
+        layout.addRow("Apellidos:", self.apellido)
+        layout.addRow("RUT:", self.rut)
+        layout.addRow("Edad:", self.edad)
+        layout.addRow("Fecha de Ingreso:", self.fechaingreso)
+        layout.addRow("Médico Tratante:", self.medicoTratante)
+        layout.addRow("Diagnostico Medico:", self.DiagnosticoMedico)
+        layout.addRow("Cirugía:", self.cirugia)
+        layout.addRow("Previsión:", self.prevision)
+        layout.addRow("Antecedentes Morbidos:", self.antecedentesMorbidos)
+        layout.addRow("Motivo de Consulta:", self.motivo_consulta)
+        layout.addRow("Anamnesis Actual:", self.AnamnesisActual)
+        layout.addRow("Examen Fisico:", self.examen_fisico)
+        layout.addRow("Indicaciones Medicas:", self.indicacionesMedicas)
+       
 
         buttonBox = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel)
         buttonBox.accepted.connect(self.guardar_datos)
         buttonBox.rejected.connect(self.reject)
         layout.addRow(buttonBox)
 
+
     def guardar_datos(self):
         data = {
             "nombre": self.nombre.text(),
-            "edad": self.edad.text(),
-            "telefono": self.telefono.text(),
+            "apellido":self.apellido.text(),
             "rut": self.rut.text(),
-            "fecha": self.fechaNacimiento.date().toString(Qt.ISODate),
+            "edad": self.edad.text(),
+            "fecha": self.fechaingreso.date().toString(Qt.ISODate),
             "medicoTratante": self.medicoTratante.text(),
+            "diagnostico_medico": self.DiagnosticoMedico.toPlainText(),
             "cirugia": self.cirugia.text(),
             "prevision": self.prevision.text(),
-            "direccion": self.direccion.text(),
-            "correo": self.correo.text(),
-            "enfermedad_actual": self.enfermedad_actual.toPlainText(),
-            "motivo_consulta": self.motivo_consulta.toPlainText()
+            "antecedentes_morbidos": self.antecedentesMorbidos.toPlainText(),
+            "motivo_consulta": self.motivo_consulta.toPlainText(),
+            "anamnesis_actual": self.AnamnesisActual.toPlainText(),
+            "examen_fisico": self.examen_fisico.toPlainText(),
+            "indicaciones_medicas": self.indicacionesMedicas.toPlainText()
+            
             
         }
 
@@ -558,37 +602,29 @@ class FormularioSesion(QDialog):
         self.Ncesion = QLineEdit()
         self.fecha = QDateEdit()
         self.fecha.setDate(QDate.currentDate()) 
-        self.medico = QLineEdit()
-        self.observaciones = QTextEdit()
         self.evolucion = QTextEdit()
-        self.examen_fisico = QTextEdit()
-        self.evaluacion_muscular = QComboBox()
-        self.evaluacion_muscular.addItems(["Normal", "Anormal"])
-        self.medicion_articular = QLineEdit()
-        self.fuerza_muscular = QComboBox()
-        self.fuerza_muscular.addItems(["0", "1", "2", "3", "4", "5"])
         self.dolor_reposo = QComboBox()
         self.dolor_reposo.addItems(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"])
         self.dolor_movimiento = QComboBox()
         self.dolor_movimiento.addItems(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"])
-        self.actitud_funcional = QComboBox()
-        self.actitud_funcional.addItems(["Normal", "Anormal"])
+        self.rango_articular = QLineEdit()
+        self.evaluacion_muscular = QComboBox()
+        self.evaluacion_muscular.addItems(["grado [1] minima contraccion muscular visible sin movimiento","grado [2] escaso movimiento eliminado gravedad","grado [3] Regular movimiento parcial solo contra la gravedad", "grado [3+] +regular +movimiento completo solo contra la gravedad","grado [4 ] buena -movimiento completo contra la gravedad y resistencia minima.\nbuena:movimiento completo contra la gavedad y resistencia moderada","grado [4+] +Buena +movimiento completo contra la gravedad y fuerte resistencia.","grado [5] Normal movimiento completo contra la resistencia total."])
+        self.tratamiento_kinesico = QComboBox()
+        self.tratamiento_kinesico .addItems(["Atencion Kinesiologixa integral en fase maxima proteccion ", "Atencion Kinesiologixa integral en fase de mediana proteccion", "Atencion Kinesiologixa integral en fase de minima proteccion", "Atencion Kinesiologixa integral en fase de reintegro deportivo o laboral"])
 
         layout = QFormLayout(self)
         layout.addRow(QLabel("Formulario de Sesión"))
         layout.addRow("RUT", self.rut)
         layout.addRow("N° de Sesión", self.Ncesion)
-        layout.addRow("Fecha", self.fecha)
-        layout.addRow("Médico", self.medico)
-        layout.addRow("Observaciones", self.observaciones)
+        layout.addRow("Fecha de sesion ", self.fecha)
         layout.addRow("Evolución", self.evolucion)
-        layout.addRow("Examen Físico", self.examen_fisico)
-        layout.addRow("Evaluación Muscular", self.evaluacion_muscular)
-        layout.addRow("Medición Articular", self.medicion_articular)
-        layout.addRow("Fuerza Muscular", self.fuerza_muscular)
         layout.addRow("Dolor en Reposo", self.dolor_reposo)
         layout.addRow("Dolor en Movimiento", self.dolor_movimiento)
-        layout.addRow("Actitud Funcional", self.actitud_funcional)
+        layout.addRow("Rango articular", self.rango_articular)
+        layout.addRow("Evaluación Muscular", self.evaluacion_muscular)
+        layout.addRow("Tratamiento Kinesico", self.tratamiento_kinesico)
+        
 
         buttonBox = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel)
         buttonBox.accepted.connect(self.guardar_datos)
@@ -600,16 +636,12 @@ class FormularioSesion(QDialog):
             "rut": self.rut.text(),
             "sesion": self.Ncesion.text(),
             "fecha": self.fecha.date().toString(Qt.ISODate),
-            "medico": self.medico.text(),
-            "observaciones": self.observaciones.toPlainText(),
             "evolucion": self.evolucion.toPlainText(),
-            "examen_fisico": self.examen_fisico.toPlainText(),
-            "evaluacion_muscular": self.evaluacion_muscular.currentText(),
-            "medicion_articular": self.medicion_articular.text(),
-            "fuerza_muscular": self.fuerza_muscular.currentText(),
             "dolor_reposo": self.dolor_reposo.currentText(),
             "dolor_movimiento": self.dolor_movimiento.currentText(),
-            "actitud_funcional": self.actitud_funcional.currentText()
+            "rango_articular": self.rango_articular.text(),
+            "evaluacion_muscular": self.evaluacion_muscular.currentText(),
+            "tratamiento_kinesico": self.tratamiento_kinesico.currentText()
         }
 
         try:
