@@ -17,6 +17,8 @@ from openpyxl.utils import get_column_letter
 from docx import Document
 from docx.shared import Pt
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
+from PySide6.QtCore import QTime
+
 
 
 
@@ -348,29 +350,24 @@ class VentanaPacientes(QMainWindow):
         if paciente:
             doc.add_heading(f"Informe del Paciente: {paciente.get('nombre', '')}", level=1)
             doc.add_paragraph(f"RUT: {paciente.get('rut', '')}")
-            doc.add_paragraph(f"Edad: {paciente.get('edad', '')}")
-            doc.add_paragraph(f"Teléfono: {paciente.get('telefono', '')}")
             doc.add_paragraph(f"Fecha: {paciente.get('fecha', '')}")
-            doc.add_paragraph(f"Médico Tratante: {paciente.get('medicoTratante', '')}")
-            doc.add_paragraph(f"Cirugía: {paciente.get('cirugia', '')}")
-            doc.add_paragraph(f"Previsión: {paciente.get('prevision', '')}")
-            doc.add_paragraph(f"Dirección: {paciente.get('direccion', '')}")
-            doc.add_paragraph(f"Correo Electrónico: {paciente.get('correo', '')}")
-            doc.add_paragraph(f"Motivo de Consulta: {paciente.get('motivo_consulta', '')}")
+            doc.add_paragraph(f"Evolución: {paciente.get('evolucion', '')}")
+            doc.add_paragraph(f"Dolor en Reposo: {paciente.get('dolor_reposo', '')}")
+            doc.add_paragraph(f"Dolor en movimiento: {paciente.get('dolor_movimiento', '')}")
+            doc.add_paragraph(f"Rango articular: {paciente.get('rango_articular', '')}")
+            doc.add_paragraph(f"Evaluación Muscular: {paciente.get('evaluacion_muscular', '')}")
+            doc.add_paragraph(f"Tratamiento Kinésico: {paciente.get('tratamiento_kinesico', '')}")
 
         doc.add_heading("Sesiones", level=2)
         for dato in datos:
             doc.add_heading(f"Sesión {dato.get('sesion', '')}", level=3)
             doc.add_paragraph(f"Fecha: {dato.get('fecha', '')}")
-            doc.add_paragraph(f"Observaciones: {dato.get('observaciones', '')}")
-            doc.add_paragraph(f"Evolución: {dato.get('evolucion', '')}")
-            doc.add_paragraph(f"Examen Físico: {dato.get('examen_fisico', '')}")
-            doc.add_paragraph(f"Evaluación Muscular: {dato.get('evaluacion_muscular', '')}")
-            doc.add_paragraph(f"Medición Articular: {dato.get('medicion_articular', '')}")
-            doc.add_paragraph(f"Fuerza Muscular: {dato.get('fuerza_muscular', '')}")
+            doc.add_paragraph(f"Evolución: {dato.get('evolucion', '')}")  # Nota: uso 'dato' en lugar de 'paciente'
             doc.add_paragraph(f"Dolor en Reposo: {dato.get('dolor_reposo', '')}")
-            doc.add_paragraph(f"Dolor en Movimiento: {dato.get('dolor_movimiento', '')}")
-            doc.add_paragraph(f"Actitud Funcional: {dato.get('actitud_funcional', '')}")
+            doc.add_paragraph(f"Dolor en movimiento: {dato.get('dolor_movimiento', '')}")
+            doc.add_paragraph(f"Rango articular: {dato.get('rango_articular', '')}")
+            doc.add_paragraph(f"Evaluación Muscular: {dato.get('evaluacion_muscular', '')}")
+            doc.add_paragraph(f"Tratamiento Kinésico: {dato.get('tratamiento_kinesico', '')}")
 
         options = QFileDialog.Options()
         file_name, _ = QFileDialog.getSaveFileName(self, "Guardar Informe como", "", "Word Files (*.docx)", options=options)
@@ -386,16 +383,27 @@ class VentanaPacientes(QMainWindow):
         if paciente:
             # Obtener los datos del paciente
             nombre = paciente.get("nombre", "")
+            apellido = paciente.get("apellido", "")
+            rut = paciente.get("rut", "")
             edad = paciente.get("edad", "")
+            fechaingreso = paciente.get("fecha", "")
+            medicotratante= paciente.get("medicoTratante", "")
+            DiagnosticoMedico = paciente.get("diagnostico_medico", "")
+            cirugia = paciente.get("cirugia", "")
+            prevision = paciente.get("prevision", "")
+            antecedentesMorbidos = paciente.get("antecedentes_morbidos", "")
             motivo_consulta = paciente.get("motivo_consulta", "")
-            enfermedad_actual = paciente.get("enfermedad_actual", "")
-            examen_fisico = paciente.get("examen_fisico", "")  
+            anamnesisActual = paciente.get("anamnesis_actual", "")
+            examen_fisico = paciente.get("examen_fisico", "")
+            indicacionesMedicas = paciente.get("indicaciones_medicas", "")
+            
 
+           
             # Crear una instancia de GenerarInformeFormulario
             self.formulario_informe = GenerarInformeFormulario()
 
             # Establecer los datos del paciente en la ventana de GenerarInformeFormulario
-            self.formulario_informe.set_datos(nombre, rut, edad, examen_fisico, enfermedad_actual, motivo_consulta)
+            self.formulario_informe.set_datos(nombre,apellido,rut,edad,fechaingreso,medicotratante,DiagnosticoMedico,cirugia,prevision,antecedentesMorbidos,motivo_consulta,anamnesisActual,examen_fisico,indicacionesMedicas)
 
             # Mostrar la ventana de GenerarInformeFormulario
             self.formulario_informe.show()
@@ -523,19 +531,19 @@ class FormularioPaciente(QDialog):
         self.prevision.setFixedSize(QSize(200,20))
 
         self.antecedentesMorbidos = QTextEdit()
-        self.antecedentesMorbidos.setFixedSize(QSize(200, 100))
+        self.antecedentesMorbidos.setFixedSize(QSize(200, 80))
 
         self.motivo_consulta = QTextEdit()
-        self.motivo_consulta.setFixedSize(QSize(200, 100))
+        self.motivo_consulta.setFixedSize(QSize(200, 80))
 
         self.AnamnesisActual = QTextEdit()
-        self.AnamnesisActual.setFixedSize(QSize(200, 100))
+        self.AnamnesisActual.setFixedSize(QSize(200, 80))
 
         self.examen_fisico = QTextEdit()
-        self.examen_fisico.setFixedSize(QSize(200, 100))
+        self.examen_fisico.setFixedSize(QSize(200, 80))
 
         self.indicacionesMedicas = QTextEdit()
-        self.indicacionesMedicas.setFixedSize(QSize(200, 100))
+        self.indicacionesMedicas.setFixedSize(QSize(200, 80))
 
 
       
@@ -661,27 +669,60 @@ class GenerarInformeFormulario(QWidget):
 
         self.nombre_input = QLineEdit()
         layout.addRow("Nombre:", self.nombre_input)
+        self.nombre_input.setFixedSize(QSize(200, 20))
+
+        self.apellidos_input = QLineEdit()
+        layout.addRow("Apellidos:", self.apellidos_input)
+        self.apellidos_input.setFixedSize(QSize(200, 20))
 
         self.rut_input = QLineEdit()
         layout.addRow("RUT:", self.rut_input)
+        self.rut_input.setFixedSize(QSize(200, 20))
 
         self.edad_input = QLineEdit()
         layout.addRow("EDAD:", self.edad_input)
+        self.edad_input.setFixedSize(QSize(200, 20))
 
-        self.examen_fisico_input =  QTextEdit()
-        layout.addRow("Examen Fisico:", self.examen_fisico_input)
+        self.fechaingreso_input = QDateEdit()
+        self.fechaingreso_input.setDate(QDate.currentDate())
+        layout.addRow("Fecha ingreso:", self.fechaingreso_input)
+        self.fechaingreso_input.setFixedSize(QSize(200, 20))
 
-        self.enfermedad_actual_input = QTextEdit()
-        layout.addRow("Enfermedad actual :", self.enfermedad_actual_input)
+        self.medicotratante_input = QLineEdit()
+        layout.addRow("Medico Tratante:", self.medicotratante_input)
+        self.medicotratante_input.setFixedSize(QSize(200, 20))
+
+        self.diagnostico_medico_input = QTextEdit()
+        layout.addRow("Diagnostico Medico:", self.diagnostico_medico_input)
+        self.diagnostico_medico_input.setFixedSize(QSize(200, 60))
+        
+        self.cirugia_input = QLineEdit()
+        layout.addRow("Cirugia:", self.cirugia_input)
+        self.cirugia_input.setFixedSize(QSize(200, 20))
+
+        self.prevision_input = QLineEdit()
+        layout.addRow("Prevision:", self.prevision_input)
+        self.prevision_input.setFixedSize(QSize(200, 20))
+
+        self.antecedentes_morbidos_input = QTextEdit()
+        layout.addRow("Antecedentes Morbidos:", self.antecedentes_morbidos_input)
+        self.antecedentes_morbidos_input.setFixedSize(QSize(200, 80))
 
         self.motivo_consulta_input = QTextEdit()
         layout.addRow("Motivo de Consulta:", self.motivo_consulta_input)
+        self.motivo_consulta_input.setFixedSize(QSize(200, 80))
 
-        self.diagnostico_input = QTextEdit()
-        layout.addRow("Diagnóstico:", self.diagnostico_input)
+        self.anamnesis_actual_input = QTextEdit()
+        layout.addRow("Anamnesis Actual:", self.anamnesis_actual_input)
+        self.anamnesis_actual_input.setFixedSize(QSize(200, 80))
 
-        self.indicaciones_input = QTextEdit()
-        layout.addRow("Indicaciones:", self.indicaciones_input)
+        self.examen_fisico_input = QTextEdit()
+        layout.addRow("Examen Fisico:", self.examen_fisico_input)
+        self.examen_fisico_input.setFixedSize(QSize(200, 80))
+
+        self.indicaciones_medicas_input = QTextEdit()
+        layout.addRow("Indicaciones Medicas:", self.indicaciones_medicas_input)
+        self.indicaciones_medicas_input.setFixedSize(QSize(200, 80))
 
         self.generar_informe_button = QPushButton("Generar Informe")
         self.generar_informe_button.clicked.connect(self.generar_informe)
@@ -689,18 +730,29 @@ class GenerarInformeFormulario(QWidget):
 
         self.setLayout(layout)  # Establecer el diseño en la ventana
 
-    def set_datos(self, nombre, rut, edad, examen_fisico, enfermedad_actual, motivo_consulta):
+    def set_datos(self, nombre, apellidos, rut, edad, fechaingreso, medicotratante, diagnostico_medico, cirugia, prevision, antecedentes_morbidos, motivo_consulta, anamnesis_actual, examen_fisico, indicaciones_medicas):
         # Método para establecer los datos del paciente en la ventana
         self.nombre_input.setText(nombre)
+        self.apellidos_input.setText(apellidos)
         self.rut_input.setText(rut)
         self.edad_input.setText(edad)
-        self.examen_fisico_input.setPlainText(examen_fisico)
-        self.enfermedad_actual_input.setPlainText(enfermedad_actual)
+        # Convertir fechaingreso de string a QDate
+        if isinstance(fechaingreso, str):
+            self.fechaingreso_input.setDate(QDate.fromString(fechaingreso, "dd/MM/yyyy"))
+        self.medicotratante_input.setText(medicotratante)
+        self.diagnostico_medico_input.setPlainText(diagnostico_medico)
+        self.cirugia_input.setText(cirugia)
+        self.prevision_input.setText(prevision)
+        self.antecedentes_morbidos_input.setPlainText(antecedentes_morbidos)
         self.motivo_consulta_input.setPlainText(motivo_consulta)
+        self.anamnesis_actual_input.setPlainText(anamnesis_actual)
+        self.examen_fisico_input.setPlainText(examen_fisico)
+        self.indicaciones_medicas_input.setPlainText(indicaciones_medicas)
+
     def generar_informe(self):
         # Obtener los valores de los campos de diagnóstico e indicaciones
-        diagnostico = self.diagnostico_input.toPlainText()
-        indicaciones = self.indicaciones_input.toPlainText()
+        diagnostico = self.diagnostico_medico_input.toPlainText()
+        indicaciones = self.indicaciones_medicas_input.toPlainText()
 
         # Verificar si los campos requeridos están vacíos
         if not diagnostico or not indicaciones:
@@ -709,11 +761,17 @@ class GenerarInformeFormulario(QWidget):
 
         # Obtener los valores de los otros campos
         nombre = self.nombre_input.text()
+        apellidos = self.apellidos_input.text()
         rut = self.rut_input.text()
         edad = self.edad_input.text()
-        examen_fisico = self.examen_fisico_input.toPlainText()
-        enfermedad_actual = self.enfermedad_actual_input.toPlainText()
+        fechaingreso = self.fechaingreso_input.date().toString("dd/MM/yyyy")
+        medicotratante = self.medicotratante_input.text()
+        cirugia = self.cirugia_input.text()
+        prevision = self.prevision_input.text()
+        antecedentes_morbidos = self.antecedentes_morbidos_input.toPlainText()
         motivo_consulta = self.motivo_consulta_input.toPlainText()
+        anamnesis_actual = self.anamnesis_actual_input.toPlainText()
+        examen_fisico = self.examen_fisico_input.toPlainText()
 
         # Crear el documento de Word
         doc = Document()
@@ -723,9 +781,12 @@ class GenerarInformeFormulario(QWidget):
         doc.add_heading(f"Fecha: {fecha_actual}", level=1)
 
         # Agregar información del paciente en la esquina superior izquierda
-        doc.add_paragraph(f"Nombre: {nombre}")
+        doc.add_paragraph(f"Nombre: {nombre} {apellidos}")
         doc.add_paragraph(f"RUT: {rut}")
         doc.add_paragraph(f"Edad: {edad}")
+        doc.add_paragraph(f"Médico Tratante: {medicotratante}")
+        doc.add_paragraph(f"Cirugía: {cirugia}")
+        doc.add_paragraph(f"Previsión: {prevision}")
 
         # Agregar título "Informe Médico"
         title_paragraph = doc.add_heading("INFORME MÉDICO", level=1)
@@ -737,13 +798,17 @@ class GenerarInformeFormulario(QWidget):
         # Establecer el tamaño de fuente del run
         run.font.size = Pt(36)
 
+        # Agregar sección de antecedentes mórbidos
+        doc.add_heading("Antecedentes Mórbidos", level=2)
+        doc.add_paragraph(antecedentes_morbidos)
+
         # Agregar sección de motivo de consulta
         doc.add_heading("Motivo de Consulta", level=2)
         doc.add_paragraph(motivo_consulta)
 
-        # Agregar sección de enfermedad actual
-        doc.add_heading("Enfermedad Actual", level=2)
-        doc.add_paragraph(enfermedad_actual)
+        # Agregar sección de anamnesis actual
+        doc.add_heading("Anamnesis Actual", level=2)
+        doc.add_paragraph(anamnesis_actual)
 
         # Agregar sección de examen físico
         doc.add_heading("Examen Físico", level=2)
@@ -767,16 +832,22 @@ class GenerarInformeFormulario(QWidget):
         file_name, _ = QFileDialog.getSaveFileName(self, "Guardar Informe como", "", "Word Files (*.docx)", options=options)
         if file_name:
             doc.save(file_name)
-    # Guardar el informe en Firestore
+            # Guardar el informe en Firestore
             informe_data = {
                 "nombre": nombre,
+                "apellidos": apellidos,
                 "rut": rut,
                 "edad": edad,
+                "fechaingreso": fechaingreso,
+                "medicotratante": medicotratante,
+                "diagnostico_medico": diagnostico,
+                "cirugia": cirugia,
+                "prevision": prevision,
+                "antecedentes_morbidos": antecedentes_morbidos,
                 "motivo_consulta": motivo_consulta,
-                "enfermedad_actual": enfermedad_actual,
+                "anamnesis_actual": anamnesis_actual,
                 "examen_fisico": examen_fisico,
-                "diagnostico": diagnostico,
-                "indicaciones": indicaciones,
+                "indicaciones_medicas": indicaciones,
                 "fecha": fecha_actual,
                 "ruta_documento": file_name  # Guardamos la ruta del documento generado
             }
@@ -787,7 +858,8 @@ class GenerarInformeFormulario(QWidget):
                 QMessageBox.information(self, "Enviar a Firestore", "El informe se ha guardado en Firestore correctamente.")
             except Exception as e:
                 QMessageBox.warning(self, "Error al enviar a Firestore", f"No se pudo guardar el informe en Firestore: {str(e)}")
-                QMessageBox.information(self, "Generar Informe", f"El informe se ha generado y guardado en '{file_name}' correctamente.")
+
+            QMessageBox.information(self, "Generar Informe", f"El informe se ha generado y guardado en '{file_name}' correctamente.")
 
 if __name__ == "__main__":
     app = QApplication([])
