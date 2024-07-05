@@ -24,7 +24,7 @@ from PySide6.QtCore import QTime
 
 
 # Inicializa Firebase Admin SDK
-cred = credentials.Certificate("C:/Users/anghe/OneDrive/Desktop/firebase_credenciales.txt.json")
+cred = credentials.Certificate("C:/Users/zack_/Desktop/informes_programa/firebase_credenciales.txt.json")
 firebase_admin.initialize_app(cred, {'databaseURL': "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-lss3s%40consultorior-37acd.iam.gserviceaccount.com"})
 db = firestore.client()
 
